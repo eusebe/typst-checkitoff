@@ -11,6 +11,11 @@
 )
 
 #show: contexture.bundle.with(
+  template: body => {
+    set page(width: 16.6cm, height: auto, margin: 12pt)
+    set text(size: 10.5pt)
+    body
+  },
   documents: (checklist(checklist: tiny),),
 )
 

@@ -24,13 +24,6 @@
   #if caption != none [#text(size: 0.78em, fill: luma(120), style: "italic")[#caption]]
 ]
 
-#let snippet(name, embed) = {
-  code-of("manual-snippets/" + name + ".typ")
-  v(0.5em)
-  embed("manual-snippets/" + name + "/")
-  v(1em)
-}
-
 #align(center)[
   #v(0.5cm)
   #text(size: 1.8em, weight: "bold")[equator]
@@ -42,9 +35,18 @@
 #outline(indent: auto)
 #pagebreak()
 
-= Installation and compiling
+= What equator is for
 
-Import the package, plus `contexture` --- the shared backend that assembles the bundle and resolves anchors across documents (see #link(<sec-project-layout>)[the pilot chapter] below; equator itself never calls Typst's `document(...)`):
+Reporting guidelines (CONSORT for randomised trials, PRISMA for systematic reviews, SPIRIT for trial protocols, STARD, STROBE...) ask an author to prove that a manuscript reports a fixed list of items --- and, for most journals, to submit a completed grid citing the exact page where each one appears. Written by hand, that grid is done once, then quietly goes stale the first time a paragraph moves.
+
+Equator automates it. Mark each item where it actually appears in your manuscript --- `#check("6a")[...]` around the sentence describing your primary outcome, say --- and one compile produces both:
+
+- *`manuscript.pdf`* --- exactly what you're submitting, with no visible trace of any `check()` call;
+- *`checklist.pdf`* --- the official grid, filled in, citing the real page number each item landed on *in that same compile*. Move a paragraph, recompile, and the numbers are simply right again.
+
+This only works because both documents come out of a single Typst compile that can see its own final layout. Equator itself doesn't implement that part: it's built on `contexture`, a small shared package that does the actual multi-document plumbing and is installed alongside it (see the next chapter). You don't need to learn `contexture` to use equator --- everything you need is shown here, one step at a time. The closing chapter, "Equator in the contexture ecosystem," explains what `contexture` actually does and introduces `@preview/palimpsest`, a sibling package for tracked manuscript revisions and reviewer response letters, for anyone who wants the bigger picture or needs to combine the two.
+
+= Installation and compiling
 
 #code(
   "#import \"@preview/equator:0.1.0\": *\n" +
@@ -55,23 +57,60 @@ A manuscript plus its completed checklist compiles with one command:
 
 #code("typst compile --features bundle --format bundle main.typ")
 
-This produces `manuscript.pdf` --- exactly as it will be submitted, with no visible trace of any `check()`/`na()` call --- and `checklist.pdf`, the completed grid, citing the *real* page numbers `manuscript.pdf` was just laid out with in this same compile. Two optional preview compiles exist alongside it:
+This produces `manuscript.pdf` and `checklist.pdf` from the same compile. A second, optional compile is useful while drafting:
 
 #code(
   "typst compile --features bundle --format bundle --input preview=true main.typ"
 )
 
-produces `manuscript-preview.pdf` only (no `checklist.pdf` --- see #link(<sec-project-layout>)[why below]), with every `check()`'d span lightly highlighted and tagged with its item id, a drafting aid to see at a glance what's covered so far and where.
+This produces `manuscript-preview.pdf` only (no `checklist.pdf` in this compile --- see #link(<sec-pilot>)[why, below]) with every `check()`'d span lightly highlighted and tagged with its item id, so you can see at a glance what's covered so far and where. Nothing about it ever reaches the real submission.
 
-`check()`/`na()` also work directly in a single ordinary file, with a plain `typst compile`, no bundle involved at all --- that form is what every snippet in the next few chapters uses, since it's the simplest way to show what each function does on its own; the bundle only enters once a real `checklist.pdf` needs to come out of the same compile (see the chapters on the grid and on the pilot).
+Every example in this manual is a single, self-contained file, compiled directly --- the simplest way to show what each function does on its own. `check()` and `na()` even work in a plain `typst compile`, with no bundle at all: that's the form used for the very next example. A real, multi-file project instead wires its manuscript and its checklist together explicitly; that pattern is covered once you've seen the pieces it's built from, in #link(<sec-pilot>)[Wiring a real project].
 
-*Why two packages, not one:* `contexture` is a small, package-agnostic backend (an anchor primitive, the `variant`/`preview` compile axes, diagnostics, and the pilot that turns a list of "satellite documents" into real files) shared with `@preview/palimpsest` (manuscript revision tracking and reviewer response letters) and any future package built the same way. Equator builds `checklist(...)` --- a description of the completed grid --- on top of it; it never calls `document(...)` itself. This is also what lets equator and palimpsest combine in the very same compile: see palimpsest's manual, "Combining with another `contexture` package".
+= Your first checklist <sec-quickstart>
 
-= Marking items: `check`, `na`
+The smallest complete example: a four-item made-up checklist (a real project would pass `checklists.consort` or another built-in grid instead --- see #link(<sec-checklists>)[Built-in checklists] --- but a tiny one keeps the whole grid on one page here), a short manuscript, and two `check()` calls plus one `na()`.
 
-/ `check(id, body)`: anchors `body` to item `id` of whichever checklist is active for this compile. Never modifies `body` in the plain compile: zero visual footprint, safe inside any journal template's flow. Under `--input preview=true`, wraps `body` in a light highlight with the item id superscripted --- a drafting aid only, never present in `manuscript.pdf`.
-/ `check(id)`: the bare, point-marker form --- no body at all. Registers item `id`'s location without rendering anything, ever, in the plain compile; `body` must already be displayed by something else. See "`check(id)`: a point-marker form" below for why this exists and when to reach for it instead of `check(id, body)`.
-/ `na(id, reason: none)`: declares item `id` not applicable to this manuscript, with an optional justification. Renders nothing wherever it's called --- typically grouped in a dedicated block rather than anchored to any one location in the text (see the examples below).
+#code-of("manual-snippets/bundle-basics.typ")
+
+A few things to notice in that file, top to bottom:
+
++ `tiny` is nothing but a dictionary: a `name`, a `full-name`, and a list of `items`, each with a `section`, an optional `topic`/`group`, an `id`, and a `description`. Nothing here is specific to equator's internals --- it's the same shape every built-in checklist uses, and the same shape a house checklist of your own would use.
++ `#show: contexture.bundle.with(...)` is the one line of setup a real project needs: it tells Typst which checklist is active (`checklist(checklist: tiny)`) and applies a page template to the manuscript. Everything after it is your manuscript, written exactly as you'd write it without equator at all.
++ `#check("1a")[...]` wraps a passage of the manuscript and records "this is where item 1a is answered." `#na("14", reason: [...])` instead declares, in one line, that item 14 doesn't apply here --- with a justification, not a silent omission.
+
+Compiled plain, `manuscript.pdf` shows nothing but ordinary prose --- no box, no id, no visible trace of `check()` at all:
+
+#shot("manual-snippets/bundle-basics/manuscript-plain.png")
+
+Compiled again with `--input preview=true` --- a drafting view only, never part of the real submission --- each checked span is lightly highlighted with its item id superscripted, so you can see coverage at a glance while writing (`checklist.pdf` isn't produced in this compile at all --- see #link(<sec-pilot>)[why below]):
+
+#shot("manual-snippets/bundle-basics/manuscript-preview.png")
+
+And here is `checklist.pdf`, from the first, plain compile --- the actual deliverable:
+
+#shot("manual-snippets/bundle-basics/checklist-plain.png")
+
+Worth noticing in that grid: "Randomisation" (item 10/11's shared `group`) renders as its own band nested inside the "Methods" section band --- an item's `group`, when it has one, always gets this treatment. Item 14 shows `N/A` in the Page column, with its justification printed verbatim underneath, in the "Not applicable" block --- both come directly from the single `na("14", reason: [...])` call above, with no `check()` anywhere for that id. If an item had been left neither `check()`'d nor `na()`'d, its Page cell would instead show a small warning marker --- covered in full in #link(<sec-diagnostics>)[Reading the grid], once the individual marking functions have been introduced properly.
+
+== Recommended workflow
+
+The example above is the whole mechanism; a real manuscript just repeats the same two calls, `check()` and `na()`, at every relevant spot. In practice:
+
++ Pick a checklist --- one of the built-in ones (#link(<sec-checklists>)[below]), or your own dictionary of the same shape.
++ Write the manuscript as usual, wrapping each passage that answers an item in `check(id)[...]`, and grouping every genuinely inapplicable item under `na(id, reason: [...])`.
++ While drafting, compile with `--input preview=true` from time to time --- a quick visual check of what's covered and what isn't yet, with no effect on the real manuscript.
++ Once the draft feels complete, compile normally and read `checklist.pdf`. Its Diagnostics block (#link(<sec-diagnostics>)[below]) lists anything unresolved: an item never covered, a `check()` with nothing in it, an id that doesn't match any item, or a genuine contradiction.
++ Fix each one --- add the missing `check()`, or an `na()` with a real reason --- and recompile.
++ Before submission, compile once with `strict: true` (#link(<sec-strict>)[below]): every remaining diagnostic becomes a hard compile error instead of a soft marker, a clean pass-fail gate.
++ Submit `manuscript.pdf` and `checklist.pdf` together --- they came from the same compile, so the page numbers in one are guaranteed to match the other.
+
+= Marking items: `check` and `na`
+
+/ `check(id, body)`: anchors `body` to item `id` of whichever checklist is active for this compile, and renders `body` exactly as written. Zero visual footprint in the plain compile --- safe inside any journal template's flow. Under `--input preview=true`, `body` gets a light highlight with the item id superscripted, purely as a drafting aid.
+/ `na(id, reason: none)`: declares item `id` not applicable to this manuscript, with an optional justification. Renders nothing at the call site --- it's typically grouped in one dedicated block rather than scattered through the text, as in the example above.
+
+A minimal, standalone example --- no bundle involved, just `check()` in a plain file:
 
 #code-of("manual-snippets/marks-check-basics.typ")
 
@@ -83,15 +122,17 @@ Once more with `--input preview=true`:
 
 #shot("manual-snippets/marks-check-basics/result-preview.png")
 
-`check()` doesn't need to know which checklist is active, or even that one exists at all --- it just anchors `body` under `id`; whether that `id` means anything is only decided later, when `render-checklist(...)` (or the `checklist(...)` satellite, see below) resolves it against a real checklist's items. This is why `check("6a")` above compiles and renders fine entirely on its own, with no `#show: bundle.with(...)` anywhere in the file. It's also why an id that turns out not to belong to *any* item in the active checklist is a diagnostic caught later, in the grid, rather than an error here (see "Diagnostics" below).
+`check()` doesn't need to know which checklist is active, or even that one exists --- it just anchors `body` under `id`; whether that id means anything is only decided later, when the grid is built. That's why this file compiles and renders correctly entirely on its own, with no `#show: bundle.with(...)` anywhere. It's also why an id that turns out not to match any item is a diagnostic caught later, in the grid, rather than an error here.
 
-An item can legitimately be checked more than once --- CONSORT's own guidance for a few items explicitly allows this (e.g., a method described once and its rationale discussed elsewhere) --- in which case the grid lists every page it was found on, deduplicated; see "The page-break idiom" below for the one case (a single passage spanning two pages) where deliberately calling `check()` twice on the *same* passage is the recommended way to get a correct, two-page citation.
+An item can legitimately be checked more than once --- a method described once and its rationale discussed elsewhere, say --- in which case the grid lists every page it was found on. The one deliberate exception is a single passage that straddles a page break: see #link(<sec-page-break>)[The page-break idiom] for the recommended way to get a correct, two-page citation for that case specifically.
 
-`na()` is the explicit counterpart: some items genuinely don't apply to a given manuscript (CONSORT's item 8, "Harms" reporting details irrelevant to a trial with no serious adverse events, say). Declaring it explicitly, with a reason, is what turns "item never mentioned" from an oversight worth flagging into a documented, deliberate choice --- see the checklist grid's "Not applicable" block further down.
+`na()` is the explicit counterpart to `check()`: some items genuinely don't apply to a given manuscript (a trial with no serious adverse events has nothing to say for a "Harms" item, for instance). Declaring it, with a reason, turns "item never mentioned" from an oversight worth flagging into a documented, deliberate choice.
 
-== `check(id)`: a point-marker form
+== The point-marker form: `check(id)` alone
 
-`check(id, body)` renders `body` --- that's exactly right the vast majority of the time, since most checklist items simply live at their own spot in the manuscript, unrelated to anything else. Sometimes, though, the location an item covers is already being rendered by something else --- most commonly, a revision-tracking package's own marking call, when a reviewer's requested change happens to *be* the manuscript's answer to a checklist item. Calling `check(id, body)` there too, alongside that other call, would render the same text a second time, since it always prints `body` itself. `check(id)`, with no second argument, only ever anchors --- exactly like palimpsest's own `passage(anchors, body)` / `passage(body)` dispatch, one function, two closely related shapes rather than two names to remember.
+`check(id, body)` renders `body` --- and that's the right call almost every time, since most items simply live at their own spot in the manuscript. Occasionally, though, the passage an item covers is already being rendered by something else --- most commonly another package's own marking call, when what a reviewer asked you to change happens to *be* your answer to a checklist item. Calling `check(id, body)` there too would print the same text a second time, since it always renders `body` itself.
+
+For exactly that case, `check(id)` --- one argument, no body --- only ever registers the item's location; it never renders anything, ever. `body` must already be displayed by something else.
 
 #code-of("manual-snippets/marks-check-point-marker.typ")
 
@@ -99,57 +140,41 @@ Compiled once, plain --- the sentence appears exactly once, exactly as written:
 
 #shot("manual-snippets/marks-check-point-marker/manuscript-plain.png")
 
-Once more with `--input preview=true` --- a small superscripted id, but no highlight box: there's no body here for a box to wrap around, but the id itself is still visible as a drafting aid:
+Once more with `--input preview=true` --- a small superscripted id, but no highlight box: there's no body here to wrap one around, but the id is still shown as a drafting aid:
 
 #shot("manual-snippets/marks-check-point-marker/manuscript-preview.png")
 
-The item still resolves correctly in `checklist.pdf` --- both forms write the exact same `"equator-item"` metadata shape, so `resolve-item`, `pages-of`, and every diagnostic in `grid.typ` treat a bare `check(id)` identically to `check(id, body)`. The one exception is `excerpt-of`: a bare `check(id)` has no `body` to quote, so that particular occurrence is skipped when `excerpt-of` gathers text to re-emit (falling back to `on-empty` only if *no* occurrence of `id` has a body at all) --- an item covered only via bare markers simply contributes no excerpt, which is the honest answer, not an error. The "blank content" diagnostic never fires on the bare form either: a missing body there is the deliberate point-marker shape, not the mistake it would be for `check(id, body)`'s own empty-body case (`check(id)[]`). See #link(<sec-contexture-equator-note>)["Combining with `@preview/palimpsest`"] below for the real motivating case, and contexture's manual for the general principle behind it.
+The item still resolves correctly in `checklist.pdf`, exactly as if it had been written `check(id, body)`. The only function that notices the difference is `excerpt-of` (#link(<sec-excerpt>)[below]): with no body to quote, an occurrence marked this way simply contributes no excerpt, which is the honest answer, not an error. The "blank content" diagnostic never fires on it either --- a missing body here is the deliberate shape of this form, not the mistake it would be for `check(id)[]`.
 
-= The checklist grid: `render-checklist`
+The most common reason to reach for this form --- combining equator with a package that already renders the text, such as `@preview/palimpsest`'s tracked-changes marks --- is covered in full in the closing chapter, #link(<sec-ecosystem>)[Equator in the contexture ecosystem].
 
-`render-checklist(checklist:, title: auto)` renders the completed grid for `checklist` --- every official item, grouped by section (and, when the checklist has them, by a mid-level group inside a section), the resolved page number(s) for each, and a Diagnostics block listing anything that doesn't add up. It's exported independently of the pilot (like palimpsest's `change-list()`), for use outside the two-document bundle wiring if ever needed --- but the ordinary way to get a `checklist.pdf` is through the `checklist(...)` satellite (see #link(<sec-project-layout>)[the pilot chapter]), which calls this internally.
+= Reading the grid <sec-diagnostics>
 
-A checklist is plain data: a dictionary with `name`, `full-name`, and `items` (each with `section`, `topic`, `group` --- `none` when the checklist has no mid-level grouping --- `id`, and `description`), plus optional `headers`, `style`, and `citation` fields covered below. `checklist:` has no default anywhere in this package --- see #link(<sec-project-layout>)[the pilot chapter] for why an explicit choice is required even though CONSORT ships built in.
+`render-checklist(checklist:, title: auto)` is the function that draws the grid you already saw in #link(<sec-quickstart>)[Your first checklist]: every official item, grouped by section (and, when the checklist has one, by a mid-level group inside a section), each item's resolved page number(s), and a Diagnostics block listing anything that doesn't add up. In an ordinary project you never call it directly --- the `checklist(...)` satellite (#link(<sec-pilot>)[below]) calls it for you --- but it's exported on its own too, in case a project ever needs the grid outside the usual two-document setup.
 
-The example below is deliberately a tiny, made-up 4-item grid rather than the full 42-item CONSORT checklist, so the whole thing --- section band, a mid-level group band, and a `na()`'d item --- fits in one page here; a real project passes e.g. `checklists.consort` in `checklist:` instead (see "Built-in checklists" below).
-
-#code-of("manual-snippets/bundle-basics.typ")
-
-`manuscript.pdf`, compiled plain:
-
-#shot("manual-snippets/bundle-basics/manuscript-plain.png")
-
-The same manuscript, `--input preview=true` (`checklist.pdf` is not produced in this compile --- see #link(<sec-project-layout>)[why below]):
-
-#shot("manual-snippets/bundle-basics/manuscript-preview.png")
-
-And `checklist.pdf`, from the first, plain compile:
-
-#shot("manual-snippets/bundle-basics/checklist-plain.png")
-
-A few things worth noting in that grid: "Randomisation" (item 10/11's shared `group`) renders as its own italic band nested inside the "Methods" section band, between the section header and the topic rows --- CONSORT 2025's own layout for its one mid-level heading. Item 14 shows `N/A` in the Page column, and its justification appears verbatim in the "Not applicable" block below the table --- both come directly from the single `na("14", reason: [...])` call, with no `check()` anywhere for that id.
+A checklist is plain data, as already seen: `name`, `full-name`, `items`, plus optional `headers`, `style`, and `citation` fields covered later in this manual. `checklist:` never defaults to anything, even though CONSORT ships built in --- an explicit choice costs nothing and avoids a silent, surprising default once a project is juggling more than one grid.
 
 == Diagnostics
 
-Five distinct situations are flagged, each routed through the same `diagnose(...)` call so `strict:` mode (below) catches all of them the same way:
+Five situations are flagged, always in the same way, so `strict:` mode (#link(<sec-strict>)[below]) catches every one of them consistently:
 
-- an item never `check()`'d or `na()`'d at all --- "not covered";
-- a `check()` call whose content is blank (`contexture.is-blank`) --- most often a copy-paste mistake where the id was moved but the body wasn't filled in;
-- an id used by `check()`/`na()` that matches no item in the active checklist --- typically a typo in the id, or a leftover from switching checklists;
+- an item never `check()`'d or `na()`'d at all --- *not covered*;
+- a `check()` call whose content is blank --- most often a copy-paste slip, where the id was moved but the text wasn't filled in;
+- an id used by `check()`/`na()` that matches no item in the active checklist --- typically a typo, or a leftover from switching checklists;
 - the same id both `check()`'d and `na()`'d --- a real contradiction: an item can't be simultaneously reported somewhere and declared not applicable;
 - the same id `na()`'d more than once.
 
-The two per-item cases (blank content, unknown id) and the covered/not-covered/N/A distinction show up right in the Page column, as a #text(fill: red.darken(20%), weight: "bold")[⚠] marker; every diagnostic's full sentence --- including the two structural ones with no single cell to live in (unknown id, duplicate `na()`) --- is listed in full underneath the table, in a dedicated Diagnostics block.
+The first three (not covered / blank / unknown id) show up right in the Page column, as a #text(fill: red.darken(20%), weight: "bold")[⚠] marker; every diagnostic's full sentence, including the two that have no single cell of their own (unknown id, duplicate `na()`), is listed underneath the table, in a dedicated Diagnostics block.
 
 #code-of("manual-snippets/bundle-diagnostics.typ")
 
 #shot("manual-snippets/bundle-diagnostics/checklist-plain.png")
 
-This same example also shows the rowspan behaviour for a run of consecutive items sharing one `topic` (t6/t7, both "Topic 4", nested under the "Sub-group demo" group): the Topic cell spans both rows rather than repeating.
+This same example also shows what happens when consecutive items share one `topic` (t6/t7, both "Topic 4", under the "Sub-group demo" group): the Topic cell spans both rows instead of repeating.
 
-=== Strict mode
+== Strict mode <sec-strict>
 
-By default every diagnostic above renders as a soft, visible marker --- easy to spot while drafting, but it won't fail a build on its own. `strict: true`, passed to `contexture.bundle(...)` (not to `checklist(...)` --- strictness is a property of the whole compile, shared with any other `contexture`-based package in the same bundle, see palimpsest's manual), turns every one of them into a hard compile error instead:
+By default, every diagnostic above is a soft, visible marker --- easy to spot while drafting, but it won't fail a build on its own. `strict: true`, passed to `contexture.bundle(...)` (not to `checklist(...)` --- strictness is a property of the whole compile, so it covers any other `contexture`-based package sharing it too), turns every one of them into a hard compile error instead:
 
 #code(
   "#show: contexture.bundle.with(\n" +
@@ -176,39 +201,39 @@ The positive case --- everything covered, `strict: true` compiles cleanly, with 
   "  proper justification.])\n"
 )
 
-A real project typically reserves `strict: true` for a CI compile (a submission-readiness gate), while drafting locally without it, so an incomplete manuscript still produces a readable `checklist.pdf` with markers instead of stopping the build outright.
+A real project typically reserves `strict: true` for a CI compile or a final pre-submission check --- a hard gate --- while drafting locally without it, so an incomplete manuscript still produces a readable `checklist.pdf` with markers instead of refusing to build at all.
 
-== `excerpt-of`: re-emitting the real wording
+= Quoting the real wording: `excerpt-of` <sec-excerpt>
 
-`excerpt-of(id, quotes: false, show-page: false, on-empty: none)` re-emits the real content `check()` anchored to `id` --- one block per occurrence, joined by a paragraph break, so an item checked in two places yields two excerpts. It's not part of the official CONSORT grid, which only ever has a page-number column --- this exists for a supplementary appendix some journals or protocols additionally want, with the exact wording quoted next to each item, or for an internal compliance review.
+`excerpt-of(id, quotes: false, show-page: false, on-empty: none)` re-emits the exact content `check()` anchored to `id` --- one block per occurrence, so an item checked in two places yields two excerpts. It isn't part of the official grid, which only ever has a page-number column; it's for a supplementary appendix some journals or protocols additionally want, with the exact wording quoted next to each item, or for an internal compliance review.
 
 #code-of("manual-snippets/bundle-excerpt.typ")
 
 #shot("manual-snippets/bundle-excerpt/manuscript-plain.png")
 
-`quotes: true` wraps a textual excerpt in real quotation marks, and silently declines on anything `contexture.is-textual` flags as non-text (a figure, a table, a block equation) --- the same rule palimpsest's `pinpoint(quotes: true)` uses. `on-empty` (`none` by default, i.e. render nothing) is deliberately *not* a diagnostic the way an uncovered item is in the grid: this function can be called from inside the manuscript itself, where no diagnostic may ever render in the real, submitted deliverable --- an uncovered item is already flagged exactly once, safely, in `checklist.pdf`.
+`quotes: true` wraps a textual excerpt in real quotation marks, and silently declines on anything that isn't text --- a figure, a table, a block equation. `on-empty` (nothing, by default) is deliberately *not* a diagnostic the way an uncovered item is in the grid: this function can be called from inside the manuscript itself, where nothing should ever render a warning box in the real, submitted deliverable --- an uncovered item is already flagged exactly once, safely, in `checklist.pdf`.
 
-== The page-break idiom
+= The page-break idiom <sec-page-break>
 
-`equator` doesn't try to detect a passage that straddles a page break automatically --- there's no reliable, checklist-agnostic way to tell "one logical passage split across pages" apart from "two genuinely separate mentions of the same item" from inside a structural scan. The recommended idiom instead: call `check()` a second time, with the *same* id, right after the break.
+Equator doesn't try to detect a passage that straddles a page break automatically --- there's no reliable way to tell "one logical passage split across pages" apart from "two genuinely separate mentions of the same item." The recommended idiom instead: call `check()` a second time, with the *same* id, right after the break.
 
 #code-of("manual-snippets/bundle-page-break-idiom.typ")
 
-`pages-of` (used internally by the grid) deduplicates by page, not by call --- so this reports both pages, not a merged range and not just the first:
+The grid reports both pages, not a merged range and not just the first:
 
 #shot("manual-snippets/bundle-page-break-idiom/checklist-plain-2.png")
 
-Two genuinely separate mentions of the same item, landing on the same page, collapse to one page number instead --- the same deduplication, the other direction.
+Two genuinely separate mentions of the same item, landing on the same page, collapse to one page number instead --- the same rule, the other direction.
 
-= Style: `set-style`
+= Styling the grid: `set-style`
 
-Every visual knob `render-checklist` and `check()`'s preview rendering use goes through one shared style mechanism, resolved in three layers, each overriding only what the previous layer left unset:
+Every visual knob the grid and `check()`'s preview highlighting use goes through one shared mechanism, resolved in three layers, each overriding only what the previous layer left unset:
 
-+ equator's own package default (generic, checklist-agnostic --- portrait A4, no color, `font: auto`/`text-size: auto` meaning "whatever the ambient template already set");
-+ the active checklist's own `style:` field, if it has one --- CONSORT 2025's real landscape A4 layout and column widths, taken from its source `.docx`, is exactly this layer;
-+ whatever the compiling author explicitly asked for via `set-style(...)`.
++ equator's own package default --- generic and checklist-agnostic (portrait A4, no color, "use whatever the ambient template already set");
++ the active checklist's own `style:` field, if it has one --- CONSORT's real landscape A4 layout and column widths, taken from its official source document, is exactly this layer;
++ whatever you explicitly ask for via `set-style(...)`.
 
-`set-style(...)` takes every knob as a keyword, `auto` by default (meaning "don't touch this one"); repeated calls merge rather than reset, the same convention as palimpsest's `set-revisions`:
+`set-style(...)` takes every knob as a keyword, `auto` by default ("don't touch this one"); repeated calls merge rather than reset:
 
 #code(
   "#set-style(\n" +
@@ -234,17 +259,17 @@ An override on a checklist with no `style:` of its own:
 
 #shot("manual-snippets/style-checklist-override/checklist-plain.png")
 
-And `preview-color`/`show-id` also apply to `check()`'s own preview-mode highlight, independently of any checklist (`check()` doesn't know which checklist is active, by design --- see "Marking items" above):
+`preview-color`/`show-id` also apply to `check()`'s own preview-mode highlight, independently of any checklist --- `check()` doesn't know which checklist is active, by design:
 
 #code-of("manual-snippets/style-preview.typ")
 
 #shot("manual-snippets/style-preview/result-preview.png")
 
-These values always win over both equator's package default and the active checklist's own `style:` --- an explicit ask from the author compiling *this* manuscript is the most specific signal available. A checklist that ships its own faithful `style:` (CONSORT, PRISMA, ...) keeps looking like its real source document by default; `set-style(...)` exists for the cases where that's not what's wanted --- matching a specific journal's own house style, or simply personal preference.
+These values always win, over both equator's package default and the active checklist's own `style:` --- your explicit ask, for the manuscript you're compiling right now, is the most specific signal available. A checklist that ships its own faithful `style:` (CONSORT, PRISMA, ...) keeps looking like its real source document by default; `set-style(...)` is for the cases where that's not what you want --- matching a specific journal's house style, or simply personal preference.
 
-= `checklist` + `contexture.bundle`: the pilot <sec-project-layout>
+= Wiring a real project <sec-pilot>
 
-`checklist(checklist:, grid-template: auto)` describes the checklist as a `contexture.satellite(...)` --- the value listed under `documents:` in `#show: contexture.bundle.with(...)`. Equator has no pilot of its own: `contexture.bundle(...)` is the single point that ever calls Typst's `document(...)`, for every package built on it, precisely so stacking this alongside another package's own satellite (palimpsest's `letter(...)`, say) never runs into two competing pilots each convinced it alone owns the manuscript/document split.
+Every example so far is one file, compiled directly. A real project instead usually keeps the manuscript's prose in its own file and wires everything together from a small `main.typ`:
 
 #code(
   "#show: contexture.bundle.with(\n" +
@@ -257,23 +282,15 @@ These values always win over both equator's package default and the active check
   "#include \"manuscript.typ\""
 )
 
-`checklist:` has no default, even though CONSORT is the only grid this package ships built in today --- forcing an explicit choice costs nothing and avoids a silent, surprising default once a second grid exists (see "Built-in checklists" below). `grid-template:` (`auto` = identity) is applied to `render-checklist(...)`'s output separately from the manuscript's own `template:` --- most journals want CONSORT's own official table layout on the checklist page, not the manuscript's own house style.
+`checklist(checklist:, grid-template: auto)` is what describes the checklist for `contexture.bundle` to build. `checklist:` has no default, for the same reason as `render-checklist`'s own `checklist:` above. `grid-template:` (`auto` = leave it alone) is applied to the grid separately from the manuscript's own `template:` --- most journals want CONSORT's own official table layout on the checklist page, not the manuscript's own house style.
 
-*Why `checklist.pdf` is never built under `preview: true` or a non-`"plain"` `variant`:* `check()`'s preview highlighting can shift page breaks (the highlight box adds padding), and so, in principle, could any revision-tracking package's own tracked-mode marks (`variant() != "plain"`) if one is stacked alongside equator in the same bundle. A grid built from either of those layouts could report page numbers that don't match the manuscript actually being submitted --- worse than not producing one at all. This is `checklist(...)`'s own `applicable: () => contexture.variant() == "plain" and not contexture.preview()` rule; `checklist.pdf` only ever comes out of the one, real, plain compile.
+*Restricting a compile to fewer documents.* `--input only=<comma-separated names>` restricts a single compile to just the manuscript plus the named documents --- `--input only=` with nothing after it produces the manuscript alone, with no checklist at all. Handy for a fast preview while drafting a long manuscript, where rebuilding the grid every time is unwanted overhead.
 
-*Restricting a compile to fewer documents:* `--input only=<comma-separated satellite names>` (contexture's, not equator's) restricts a single compile to just the manuscript plus the named satellites --- `--input only=` with nothing after it produces the manuscript alone, with no checklist at all, useful for a fast preview while drafting a long manuscript where rebuilding the grid every time is unwanted overhead.
+*Why doesn't `--input preview=true` produce a `checklist.pdf`?* `check()`'s preview highlighting adds a small box around each checked span, which can shift where a page breaks. A grid built from that layout could then report page numbers that don't match the manuscript actually being submitted --- worse than not producing one at all. `checklist.pdf` is only ever built from the one, real, plain compile.
 
-*Does the checklist compile when the manuscript doesn't?* No --- and this is inherent to what a bundle compile is, not a limitation specific to equator: `document(manuscript-name + ..., ...)` and every satellite's `document(...)` call are all part of the same single Typst compile, so a hard error anywhere in the manuscript body aborts the whole compile, `checklist.pdf` included. A `check()`/`na()` *diagnostic* never does this on its own (that's exactly what `strict: false`, the default, is for) --- only a genuine Typst-level error in the manuscript (an undefined function, a malformed table, ...) does.
+*Does the checklist compile when the manuscript doesn't?* No. The manuscript and the checklist are two documents produced by the very same Typst compile, so a hard error anywhere in the manuscript aborts the whole compile, `checklist.pdf` included. A `check()`/`na()` diagnostic never does this on its own --- that's exactly what non-strict mode is for --- only a genuine error in the manuscript itself (an undefined function, a malformed table, ...) does.
 
-== Combining with `@preview/palimpsest` <sec-contexture-equator-note>
-
-Equator's `checklist(...)` and palimpsest's `letter(...)` are both just `contexture.satellite(...)` values --- listing both under the same `documents:` produces a manuscript, its tracked-changes companion, a reviewer response letter, and a completed CONSORT grid, all from one compile, all citing each other's real page numbers.
-
-Two rules matter once both packages might touch the same span of text. First: never nest `check(...)` and `passage(...)` inside each other's body, in either direction --- each wraps its own rendering in a `context` block the other's structural pre-layout scan can't see through, so nesting either way produces a false diagnostic (see palimpsest's manual, "Combining with another `contexture` package", for exactly what each failure looks like). Second, and easy to miss because it produces no error or diagnostic at all: don't call `check(...)` and `passage(...)` as two independent, *rendering* siblings on the exact same wording either --- both functions render their own `body`, so the same text prints twice, plainly, visibly duplicated in `manuscript.pdf`. This only bites when a reviewer's requested change genuinely *is* the manuscript's answer to a checklist item; two unrelated spans (the common case) have nothing to duplicate.
-
-When that coincidence happens, use the bare `check(id)` (above) instead of `check(id, body)`: `passage(...)` stays the one call that renders the text and carries its tracked-mode marks, `check(id)` only registers the item's coverage, with nothing left to duplicate or nest. `contexture`'s own manual walks through this combination end to end, including compiling the tracked-and-preview manuscript together, and states the underlying principle in package-agnostic terms.
-
-= Built-in checklists
+= Built-in checklists <sec-checklists>
 
 #table(
   columns: (auto, auto, auto, 1fr),
@@ -289,6 +306,54 @@ When that coincidence happens, use the bare `check(id)` (above) instead of `chec
   [`strobe.cross_sectional`], [STROBE (cross-sectional studies)], [22], [Portrait A4.],
 )
 
-Every entry above is transcribed from its official source document (the checklist's own PDF/Word file), page by page, including its citation and license notice --- reproduced verbatim in the "citation" block at the bottom of `checklist.pdf`, and its real column widths and section colors, read directly out of the source `.docx` XML rather than guessed, wherever the source was available as `.docx`. `strobe` is itself a dictionary of the three study-design variants above rather than one single checklist --- there is no fourth, "combined" variant covering all three designs in one document, since that source bundles all three designs' wording into a single item per row, which doesn't fit the one-description-per-id shape every other checklist here uses.
+Every entry is transcribed from its official source document, including its citation and license notice --- reproduced verbatim in the "citation" block at the bottom of `checklist.pdf` --- and its real column widths and section colors, read directly from the source file rather than guessed. `strobe` is itself a dictionary of the three study-design variants above rather than one single checklist: there is no fourth, "combined" variant, since that source bundles all three designs' wording into a single item per row, which doesn't fit the one-description-per-id shape every other checklist here uses.
 
-A checklist is plain data (see "The checklist grid" above) --- nothing about `check()`, `na()`, `render-checklist`, or the `checklist(...)` satellite is specific to CONSORT or to any one of the built-in grids above. A project with its own house checklist, or an emerging reporting guideline not yet built into this package, passes its own dictionary of the same shape in `checklist:` instead --- exactly the `tiny`/`TINY` dictionaries used throughout this manual's own examples.
+A checklist is plain data, as #link(<sec-quickstart>)[the quickstart] already showed --- nothing about `check()`, `na()`, `render-checklist`, or the `checklist(...)` satellite is specific to CONSORT or to any built-in grid above. A project with its own house checklist, or an emerging reporting guideline not built in yet, simply passes its own dictionary of the same shape in `checklist:` instead.
+
+= Equator in the contexture ecosystem <sec-ecosystem>
+
+Equator is one of two packages built on `contexture`, a small shared package neither of them ships duplicated logic for. This chapter explains what `contexture` actually contributes, introduces the other package built on it, and covers what changes when both are used together.
+
+== What `contexture` does
+
+Everything in this manual that looks up a *real* page number across two documents --- `checklist.pdf` citing exactly where in `manuscript.pdf` each item landed --- relies on Typst's experimental bundle export, which lets one compile produce several documents that can query each other's final layout. `contexture` is the small toolkit that turns that raw capability into something a package author can build on without reinventing it each time:
+
+- an *anchor* primitive --- mark a spot in one document, read it back from any other, by its real page;
+- a *shared compile pilot* (`bundle`) --- the single point that ever calls Typst's own `document(...)`, so that equator's grid and, say, another package's own generated document can both be listed side by side without competing to own the compile;
+- two independent *compile flags*, `variant` and `preview` --- `preview` is what powers `--input preview=true` throughout this manual; `variant` is a second, independent axis a package can use for its own purposes (palimpsest uses it for clean vs. tracked-changes output, below);
+- a shared *diagnostics* mechanism and `strict` flag --- what every warning marker and `strict: true` in this manual are actually built from.
+
+`equator.check()` is a thin wrapper around `contexture`'s anchor primitive; `checklist(...)` is a thin wrapper around its shared compile pilot. None of this needs to be learned to use equator as documented above --- it's mentioned here because the same foundation is shared with the package below, which is what makes combining the two straightforward rather than a rewrite.
+
+== `@preview/palimpsest`: manuscript revisions and reviewer letters
+
+`palimpsest` is a sibling package for a different problem: tracking changes made to a manuscript during peer review (`add`, `del`, `rep`, anchored to a specific reviewer comment), and generating the tracked-changes manuscript and a reviewer response letter that cites the manuscript's real pages --- down to quoting the exact revised wording next to each response, if wanted. See `@preview/palimpsest`'s own manual for the full picture; nothing in it is needed to use equator on its own.
+
+== Combining the two
+
+Equator's `checklist(...)` and palimpsest's `letter(...)` are both just descriptions of a document to build, in the same sense as `checklist(...)` was introduced in #link(<sec-pilot>)[Wiring a real project] --- listing both under the same `documents:` produces, from one compile, a manuscript, its tracked-changes companion, a reviewer response letter, and a completed reporting-guideline grid, all citing each other's real page numbers:
+
+#code(
+  "#show: contexture.bundle.with(\n" +
+  "  documents: (\n" +
+  "    palimpsest.letter(exchanges: my-exchanges),\n" +
+  "    equator.checklist(checklist: checklists.consort),\n" +
+  "  ),\n" +
+  ")\n\n" +
+  "#include \"manuscript.typ\""
+)
+
+Two rules matter once both packages might touch the same span of text:
+
++ *Never nest `check(...)` and `passage(...)` inside each other's body, in either direction.* Each wraps its own rendering in a way the other's structural scan can't see through, so nesting either way produces a false diagnostic.
++ *Don't call `check(...)` and `passage(...)` as two independent, rendering siblings on the exact same wording, either.* Nothing stops you, and nothing diagnoses it --- but both functions render their own body, so the same text prints twice, plainly duplicated in `manuscript.pdf`. This only bites when a reviewer's requested change genuinely *is* the manuscript's answer to a checklist item; two unrelated spans, the common case, have nothing to duplicate.
+
+For that second case, use the bare `check(id)` form instead, #link(<sec-quickstart>)[introduced earlier]: `passage(...)` stays the one call that renders the text and carries its tracked-changes marks, `check(id)` only registers the item's coverage, with nothing left to duplicate or nest.
+
+`@preview/contexture`'s own manual walks through this exact combination end to end, including compiling the tracked-and-preview manuscript together, in its chapter "Composing independent packages" --- the package-agnostic version of the two rules above. `@preview/palimpsest`'s manual covers its own side of it, under "Combining with another `contexture` package."
+
+== Where to go next
+
+- The mechanics behind all of this, on their own, with no notion of checklists or revisions attached: `@preview/contexture`'s manual.
+- Tracked manuscript revisions and reviewer response letters that cite the real pages: `@preview/palimpsest`'s manual.
+- Everything about reporting-guideline checklists on their own: the rest of this manual, from #link(<sec-quickstart>)[Your first checklist] onward.
