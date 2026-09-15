@@ -1,5 +1,5 @@
 [package]
-name = "equator"
+name = "checkitoff"
 version = "0.1.0"
 entrypoint = "lib.typ"
 authors = ["David Hajage <dhajage@gmail.com>"]
@@ -8,5 +8,5 @@ license = "MIT"
 keywords = ["consort", "strobe", "reporting guideline", "checklist", "manuscript"]
 compiler = "0.15.0"
 categories = ["office", "utility"]
-repository = "https://github.com/eusebe/typst-equator"
+repository = "https://github.com/eusebe/typst-checkitoff"
 exclude = ["tests", "CLAUDE.md", "checklists/*.pdf", "checklists/*.docx", "*.pdf", "**/*.pdf", "**/*.png", ".gitignore", ".DS_Store"]

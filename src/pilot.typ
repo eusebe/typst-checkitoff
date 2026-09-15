@@ -4,7 +4,7 @@
 /// Describes the checklist as a `contexture.satellite(...)` — the value
 /// an author lists under `documents:` in their own
 /// `#show: contexture.bundle.with(...)` (see
-/// MULTI-DOCUMENT-BUNDLE-DESIGN.md). Equator has no pilot of its own:
+/// MULTI-DOCUMENT-BUNDLE-DESIGN.md). Checkitoff has no pilot of its own:
 /// `contexture.bundle(...)` is the single point that ever calls
 /// `document(...)`, for every package built on it, precisely so stacking
 /// this alongside another package's own satellite (palimpsest's
@@ -25,7 +25,7 @@
 /// different page numbers than the manuscript actually being submitted —
 /// worse than not producing one at all.
 #let checklist(checklist: none, grid-template: auto) = {
-  assert(checklist != none, message: "equator: checklist: is required (e.g. checklist: checklists.consort)")
+  assert(checklist != none, message: "checkitoff: checklist: is required (e.g. checklist: checklists.consort)")
   contexture.satellite(
     "checklist",
     applicable: () => contexture.variant() == "plain" and not contexture.preview(),

@@ -5,7 +5,7 @@
 /// dictionary-field match instead of a Typst label — built on
 /// `contexture.anchors`, which already handles the cross-document query.
 /// Must be called from within a `context`.
-#let resolve-item(id) = contexture.anchors("equator-item").filter(el => el.value.id == id)
+#let resolve-item(id) = contexture.anchors("checkitoff-item").filter(el => el.value.id == id)
 
 /// Every `na()` hit whose `id` matches. In practice at most one —
 /// `grid.typ` treats more than one `na()` for the same id as its own
@@ -13,7 +13,7 @@
 /// and so the caller decides what "more than one" means rather than this
 /// silently keeping only the first. Must be called from within a
 /// `context`.
-#let resolve-na(id) = contexture.anchors("equator-na").filter(el => el.value.id == id)
+#let resolve-na(id) = contexture.anchors("checkitoff-na").filter(el => el.value.id == id)
 
 /// Page numbers `resolve-item(id)` renders onto, deduplicated but
 /// otherwise in document order — an item appearing on the same page twice

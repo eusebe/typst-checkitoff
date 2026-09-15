@@ -27,7 +27,7 @@
 // Satellite constructor — list this under `documents:` in
 // `#show: contexture.bundle.with(...)`. No pilot of its own: see
 // `src/pilot.typ` and MULTI-DOCUMENT-BUNDLE-DESIGN.md. `strict:` and
-// `--input variant=`/`preview=` are contexture's, not equator's — set
+// `--input variant=`/`preview=` are contexture's, not checkitoff's — set
 // them via `contexture.bundle(strict: true, ...)` / on the command line.
 #let checklist = pilot.checklist
 

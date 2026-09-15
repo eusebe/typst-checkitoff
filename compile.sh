@@ -1,8 +1,8 @@
 #!/bin/bash
-echo "🚀 Compiling Typst Equator..."
+echo "🚀 Compiling Typst Checkitoff..."
 cd "$(dirname "$0")"
 
-# Root is the parent "typst templates" directory, not this one: equator's
+# Root is the parent "typst templates" directory, not this one: checkitoff's
 # own source now imports ../../typst-contexture/lib.typ (a sibling
 # package, unpublished for now) directly, so the sandbox has to cover
 # both directories. See CLAUDE.md, "Migration vers contexture".

@@ -1,7 +1,7 @@
 #import "../../lib.typ": *
 #import "../../../typst-contexture/lib.typ" as contexture
 
-// "tiny" has no style: field of its own, so it renders with equator's
+// "tiny" has no style: field of its own, so it renders with checkitoff's
 // package-default-style until set-style() below overrides it.
 #let tiny = (
   name: "TINY",

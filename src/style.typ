@@ -15,7 +15,7 @@
 /// generic/neutral (portrait, no color) rather than shaped after any one
 /// real checklist, since a checklist author who wants their own grid to
 /// look a specific way is expected to say so via `style:` on their own
-/// checklist data, not rely on equator's taste. `font: auto` and
+/// checklist data, not rely on checkitoff's taste. `font: auto` and
 /// `header-fill: none` mean "whatever the ambient template already has"
 /// — a checklist that doesn't care about its own look shouldn't force
 /// one either.
@@ -41,12 +41,12 @@
 /// layer authorial overrides on top of the checklist's own style rather
 /// than the other way around. Starts empty: no override until
 /// `set-style` is actually called.
-#let style-overrides = state("equator-style-overrides", (:))
+#let style-overrides = state("checkitoff-style-overrides", (:))
 
 /// Sets document-wide style overrides. Call once, before any `check()`/
 /// `render-checklist()`. Unset (`auto`) parameters are left untouched —
 /// repeated calls merge rather than reset, same convention as
-/// palimpsest's `set-revisions`. These values win over *both* equator's
+/// palimpsest's `set-revisions`. These values win over *both* checkitoff's
 /// package default *and* whatever the active checklist's own `style:`
 /// specifies (see `effective-style`) — an explicit ask from the author
 /// compiling this particular manuscript is the most specific signal

@@ -40,7 +40,7 @@
   let pos = args.pos()
   let id = pos.at(0)
   let body = if pos.len() >= 2 { pos.at(1) } else { none }
-  contexture.anchor("equator-item", (
+  contexture.anchor("checkitoff-item", (
     id: id,
     raw-body: body,
     blank: if body == none { false } else { contexture.is-blank(body) },
@@ -67,6 +67,6 @@
 /// dedicated block in `main.typ`, see CLAUDE.md), not anchored to any
 /// location in the text. Renders nothing wherever it's called.
 #let na(id, reason: none) = {
-  contexture.anchor("equator-na", (id: id, reason: reason))
+  contexture.anchor("checkitoff-na", (id: id, reason: reason))
   none
 }

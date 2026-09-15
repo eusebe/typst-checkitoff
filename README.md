@@ -1,6 +1,6 @@
-# Equator
+# Checkitoff
 
-**Equator** fills in a reporting-guideline checklist — CONSORT, PRISMA, SPIRIT, STARD, STROBE — automatically. Mark where each item is answered in your manuscript; one compile produces the clean manuscript plus a completed grid citing the *real* page each item landed on.
+**Checkitoff** fills in a reporting-guideline checklist — CONSORT, PRISMA, SPIRIT, STARD, STROBE — automatically. Mark where each item is answered in your manuscript; one compile produces the clean manuscript plus a completed grid citing the *real* page each item landed on.
 
 <p align="center">
   <img src="docs/manual-snippets/bundle-basics/manuscript-plain.png" width="480" alt="A manuscript with items marked via check()">
@@ -27,10 +27,10 @@ This works with real page numbers because Typst's experimental **bundle export**
 
 ## Installation
 
-Import the package, plus `contexture` — the small, package-agnostic dependency that actually assembles the bundle compile (equator itself never calls Typst's own `document(...)`):
+Import the package, plus `contexture` — the small, package-agnostic dependency that actually assembles the bundle compile (checkitoff itself never calls Typst's own `document(...)`):
 
 ```typ
-#import "@preview/equator:0.1.0": *
+#import "@preview/checkitoff:0.1.0": *
 #import "@preview/contexture:0.1.0": bundle
 ```
 
@@ -41,7 +41,7 @@ Requires **Typst 0.15** or later, specifically its `--features bundle` export (s
 `check()`/`na()` work directly in a single ordinary file, no bundle involved:
 
 ```typ
-#import "@preview/equator:0.1.0": *
+#import "@preview/checkitoff:0.1.0": *
 
 The primary outcome was #check("6a")[change in disease activity score
 from baseline to week 12], assessed by a rater blinded to group
@@ -51,7 +51,7 @@ assignment.
 A real project wires the manuscript and a checklist together through `contexture.bundle`:
 
 ```typ
-#import "@preview/equator:0.1.0": *
+#import "@preview/checkitoff:0.1.0": *
 #import "@preview/contexture:0.1.0": bundle
 
 #show: bundle.with(
@@ -84,7 +84,7 @@ Every entry is transcribed from its official source document, including its cita
 
 ## Documentation
 
-- [`docs/manual.typ`](docs/manual.typ) (⇒ [pdf](docs/manual.pdf)) — the full user manual, progressive from a first checklist through diagnostics, styling, wiring a real project, and combining equator with `@preview/palimpsest` in the same compile — every result shown is a real compiled screenshot, not a simulation.
+- [`docs/manual.typ`](docs/manual.typ) (⇒ [pdf](docs/manual.pdf)) — the full user manual, progressive from a first checklist through diagnostics, styling, wiring a real project, and combining checkitoff with `@preview/palimpsest` in the same compile — every result shown is a real compiled screenshot, not a simulation.
 
 ## Part of the `contexture` ecosystem
 

@@ -8,7 +8,7 @@
 // only ever built under variant == "plain" and preview == false (its
 // own applicable() rule, see `pilot.typ`) — exactly the one combination
 // contexture's default muting would otherwise silence, which would mean
-// equator's diagnostics never show at all in practice.
+// checkitoff's diagnostics never show at all in practice.
 #let diagnose(message) = contexture.diagnose(message, always: true)
 
 /// Groups a list into consecutive runs sharing the same `key(item)`,
@@ -82,18 +82,18 @@
 /// conflict, an unknown id, a blank `check()`, a duplicated `na()`), an
 /// "Not applicable" block listing every `na()`'s justification, and —
 /// when the checklist provides one — its citation/license notice
-/// verbatim. Exported independently of `equator()` (like palimpsest's
+/// verbatim. Exported independently of `checkitoff()` (like palimpsest's
 /// `change-list()`), for use outside the two-document bundle wiring if
 /// ever needed.
 ///
 /// `title: auto` uses `checklist.full-name`; `none` omits the title
 /// entirely (e.g. if the surrounding template already introduces it).
 #let render-checklist(checklist: none, title: auto) = context {
-  assert(checklist != none, message: "equator: render-checklist needs checklist: to be given")
+  assert(checklist != none, message: "checkitoff: render-checklist needs checklist: to be given")
   let checklist = validate-checklist(checklist)
 
-  let all-items = contexture.anchors("equator-item")
-  let all-na = contexture.anchors("equator-na")
+  let all-items = contexture.anchors("checkitoff-item")
+  let all-na = contexture.anchors("checkitoff-na")
   let known-ids = checklist.items.map(it => it.id)
 
   let items-by-id(id) = all-items.filter(h => h.value.id == id)

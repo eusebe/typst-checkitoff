@@ -1,11 +1,11 @@
 // The real manual --- progressive, one function (and every one of its
-// options) at a time. Imports NOTHING from equator and runs no package
+// options) at a time. Imports NOTHING from checkitoff and runs no package
 // code: every result shown below is a PNG produced by actually compiling
 // a real file under docs/manual-snippets/, not a simulation. Regenerate
 // everything with:
 //   bash docs/manual-snippets/compile.sh
 
-#set document(title: "equator — manual")
+#set document(title: "checkitoff — manual")
 #set page(paper: "a4", margin: (x: 2.2cm, y: 2cm))
 #set text(size: 10.5pt, font: "Libertinus Serif")
 #set heading(numbering: "1.1.")
@@ -26,7 +26,7 @@
 
 #align(center)[
   #v(0.5cm)
-  #text(size: 1.8em, weight: "bold")[equator]
+  #text(size: 1.8em, weight: "bold")[checkitoff]
   #v(0.2em)
   #text(size: 1.1em, style: "italic")[User manual]
   #v(0.8cm)
@@ -35,21 +35,21 @@
 #outline(indent: auto)
 #pagebreak()
 
-= What equator is for
+= What checkitoff is for
 
 Reporting guidelines (CONSORT for randomised trials, PRISMA for systematic reviews, SPIRIT for trial protocols, STARD, STROBE...) ask an author to prove that a manuscript reports a fixed list of items --- and, for most journals, to submit a completed grid citing the exact page where each one appears. Written by hand, that grid is done once, then quietly goes stale the first time a paragraph moves.
 
-Equator automates it. Mark each item where it actually appears in your manuscript --- `#check("6a")[...]` around the sentence describing your primary outcome, say --- and one compile produces both:
+Checkitoff automates it. Mark each item where it actually appears in your manuscript --- `#check("6a")[...]` around the sentence describing your primary outcome, say --- and one compile produces both:
 
 - *`manuscript.pdf`* --- exactly what you're submitting, with no visible trace of any `check()` call;
 - *`checklist.pdf`* --- the official grid, filled in, citing the real page number each item landed on *in that same compile*. Move a paragraph, recompile, and the numbers are simply right again.
 
-This only works because both documents come out of a single Typst compile that can see its own final layout. Equator itself doesn't implement that part: it's built on `contexture`, a small shared package that does the actual multi-document plumbing and is installed alongside it (see the next chapter). You don't need to learn `contexture` to use equator --- everything you need is shown here, one step at a time. The closing chapter, "Equator in the contexture ecosystem," explains what `contexture` actually does and introduces `@preview/palimpsest`, a sibling package for tracked manuscript revisions and reviewer response letters, for anyone who wants the bigger picture or needs to combine the two.
+This only works because both documents come out of a single Typst compile that can see its own final layout. Checkitoff itself doesn't implement that part: it's built on `contexture`, a small shared package that does the actual multi-document plumbing and is installed alongside it (see the next chapter). You don't need to learn `contexture` to use checkitoff --- everything you need is shown here, one step at a time. The closing chapter, "Checkitoff in the contexture ecosystem," explains what `contexture` actually does and introduces `@preview/palimpsest`, a sibling package for tracked manuscript revisions and reviewer response letters, for anyone who wants the bigger picture or needs to combine the two.
 
 = Installation and compiling
 
 #code(
-  "#import \"@preview/equator:0.1.0\": *\n" +
+  "#import \"@preview/checkitoff:0.1.0\": *\n" +
   "#import \"@preview/contexture:0.1.0\": bundle"
 )
 
@@ -75,8 +75,8 @@ The smallest complete example: a four-item made-up checklist (a real project wou
 
 A few things to notice in that file, top to bottom:
 
-+ `tiny` is nothing but a dictionary: a `name`, a `full-name`, and a list of `items`, each with a `section`, an optional `topic`/`group`, an `id`, and a `description`. Nothing here is specific to equator's internals --- it's the same shape every built-in checklist uses, and the same shape a house checklist of your own would use.
-+ `#show: contexture.bundle.with(...)` is the one line of setup a real project needs: it tells Typst which checklist is active (`checklist(checklist: tiny)`) and applies a page template to the manuscript. Everything after it is your manuscript, written exactly as you'd write it without equator at all.
++ `tiny` is nothing but a dictionary: a `name`, a `full-name`, and a list of `items`, each with a `section`, an optional `topic`/`group`, an `id`, and a `description`. Nothing here is specific to checkitoff's internals --- it's the same shape every built-in checklist uses, and the same shape a house checklist of your own would use.
++ `#show: contexture.bundle.with(...)` is the one line of setup a real project needs: it tells Typst which checklist is active (`checklist(checklist: tiny)`) and applies a page template to the manuscript. Everything after it is your manuscript, written exactly as you'd write it without checkitoff at all.
 + `#check("1a")[...]` wraps a passage of the manuscript and records "this is where item 1a is answered." `#na("14", reason: [...])` instead declares, in one line, that item 14 doesn't apply here --- with a justification, not a silent omission.
 
 Compiled plain, `manuscript.pdf` shows nothing but ordinary prose --- no box, no id, no visible trace of `check()` at all:
@@ -146,7 +146,7 @@ Once more with `--input preview=true` --- a small superscripted id, but no highl
 
 The item still resolves correctly in `checklist.pdf`, exactly as if it had been written `check(id, body)`. The only function that notices the difference is `excerpt-of` (#link(<sec-excerpt>)[below]): with no body to quote, an occurrence marked this way simply contributes no excerpt, which is the honest answer, not an error. The "blank content" diagnostic never fires on it either --- a missing body here is the deliberate shape of this form, not the mistake it would be for `check(id)[]`.
 
-The most common reason to reach for this form --- combining equator with a package that already renders the text, such as `@preview/palimpsest`'s tracked-changes marks --- is covered in full in the closing chapter, #link(<sec-ecosystem>)[Equator in the contexture ecosystem].
+The most common reason to reach for this form --- combining checkitoff with a package that already renders the text, such as `@preview/palimpsest`'s tracked-changes marks --- is covered in full in the closing chapter, #link(<sec-ecosystem>)[Checkitoff in the contexture ecosystem].
 
 = Reading the grid <sec-diagnostics>
 
@@ -215,7 +215,7 @@ A real project typically reserves `strict: true` for a CI compile or a final pre
 
 = The page-break idiom <sec-page-break>
 
-Equator doesn't try to detect a passage that straddles a page break automatically --- there's no reliable way to tell "one logical passage split across pages" apart from "two genuinely separate mentions of the same item." The recommended idiom instead: call `check()` a second time, with the *same* id, right after the break.
+Checkitoff doesn't try to detect a passage that straddles a page break automatically --- there's no reliable way to tell "one logical passage split across pages" apart from "two genuinely separate mentions of the same item." The recommended idiom instead: call `check()` a second time, with the *same* id, right after the break.
 
 #code-of("manual-snippets/bundle-page-break-idiom.typ")
 
@@ -229,7 +229,7 @@ Two genuinely separate mentions of the same item, landing on the same page, coll
 
 Every visual knob the grid and `check()`'s preview highlighting use goes through one shared mechanism, resolved in three layers, each overriding only what the previous layer left unset:
 
-+ equator's own package default --- generic and checklist-agnostic (portrait A4, no color, "use whatever the ambient template already set");
++ checkitoff's own package default --- generic and checklist-agnostic (portrait A4, no color, "use whatever the ambient template already set");
 + the active checklist's own `style:` field, if it has one --- CONSORT's real landscape A4 layout and column widths, taken from its official source document, is exactly this layer;
 + whatever you explicitly ask for via `set-style(...)`.
 
@@ -265,7 +265,7 @@ An override on a checklist with no `style:` of its own:
 
 #shot("manual-snippets/style-preview/result-preview.png")
 
-These values always win, over both equator's package default and the active checklist's own `style:` --- your explicit ask, for the manuscript you're compiling right now, is the most specific signal available. A checklist that ships its own faithful `style:` (CONSORT, PRISMA, ...) keeps looking like its real source document by default; `set-style(...)` is for the cases where that's not what you want --- matching a specific journal's house style, or simply personal preference.
+These values always win, over both checkitoff's package default and the active checklist's own `style:` --- your explicit ask, for the manuscript you're compiling right now, is the most specific signal available. A checklist that ships its own faithful `style:` (CONSORT, PRISMA, ...) keeps looking like its real source document by default; `set-style(...)` is for the cases where that's not what you want --- matching a specific journal's house style, or simply personal preference.
 
 = Wiring a real project <sec-pilot>
 
@@ -310,34 +310,34 @@ Every entry is transcribed from its official source document, including its cita
 
 A checklist is plain data, as #link(<sec-quickstart>)[the quickstart] already showed --- nothing about `check()`, `na()`, `render-checklist`, or the `checklist(...)` satellite is specific to CONSORT or to any built-in grid above. A project with its own house checklist, or an emerging reporting guideline not built in yet, simply passes its own dictionary of the same shape in `checklist:` instead.
 
-= Equator in the contexture ecosystem <sec-ecosystem>
+= Checkitoff in the contexture ecosystem <sec-ecosystem>
 
-Equator is one of two packages built on `contexture`, a small shared package neither of them ships duplicated logic for. This chapter explains what `contexture` actually contributes, introduces the other package built on it, and covers what changes when both are used together.
+Checkitoff is one of two packages built on `contexture`, a small shared package neither of them ships duplicated logic for. This chapter explains what `contexture` actually contributes, introduces the other package built on it, and covers what changes when both are used together.
 
 == What `contexture` does
 
 Everything in this manual that looks up a *real* page number across two documents --- `checklist.pdf` citing exactly where in `manuscript.pdf` each item landed --- relies on Typst's experimental bundle export, which lets one compile produce several documents that can query each other's final layout. `contexture` is the small toolkit that turns that raw capability into something a package author can build on without reinventing it each time:
 
 - an *anchor* primitive --- mark a spot in one document, read it back from any other, by its real page;
-- a *shared compile pilot* (`bundle`) --- the single point that ever calls Typst's own `document(...)`, so that equator's grid and, say, another package's own generated document can both be listed side by side without competing to own the compile;
+- a *shared compile pilot* (`bundle`) --- the single point that ever calls Typst's own `document(...)`, so that checkitoff's grid and, say, another package's own generated document can both be listed side by side without competing to own the compile;
 - two independent *compile flags*, `variant` and `preview` --- `preview` is what powers `--input preview=true` throughout this manual; `variant` is a second, independent axis a package can use for its own purposes (palimpsest uses it for clean vs. tracked-changes output, below);
 - a shared *diagnostics* mechanism and `strict` flag --- what every warning marker and `strict: true` in this manual are actually built from.
 
-`equator.check()` is a thin wrapper around `contexture`'s anchor primitive; `checklist(...)` is a thin wrapper around its shared compile pilot. None of this needs to be learned to use equator as documented above --- it's mentioned here because the same foundation is shared with the package below, which is what makes combining the two straightforward rather than a rewrite.
+`checkitoff.check()` is a thin wrapper around `contexture`'s anchor primitive; `checklist(...)` is a thin wrapper around its shared compile pilot. None of this needs to be learned to use checkitoff as documented above --- it's mentioned here because the same foundation is shared with the package below, which is what makes combining the two straightforward rather than a rewrite.
 
 == `@preview/palimpsest`: manuscript revisions and reviewer letters
 
-`palimpsest` is a sibling package for a different problem: tracking changes made to a manuscript during peer review (`add`, `del`, `rep`, anchored to a specific reviewer comment), and generating the tracked-changes manuscript and a reviewer response letter that cites the manuscript's real pages --- down to quoting the exact revised wording next to each response, if wanted. See `@preview/palimpsest`'s own manual for the full picture; nothing in it is needed to use equator on its own.
+`palimpsest` is a sibling package for a different problem: tracking changes made to a manuscript during peer review (`add`, `del`, `rep`, anchored to a specific reviewer comment), and generating the tracked-changes manuscript and a reviewer response letter that cites the manuscript's real pages --- down to quoting the exact revised wording next to each response, if wanted. See `@preview/palimpsest`'s own manual for the full picture; nothing in it is needed to use checkitoff on its own.
 
 == Combining the two
 
-Equator's `checklist(...)` and palimpsest's `letter(...)` are both just descriptions of a document to build, in the same sense as `checklist(...)` was introduced in #link(<sec-pilot>)[Wiring a real project] --- listing both under the same `documents:` produces, from one compile, a manuscript, its tracked-changes companion, a reviewer response letter, and a completed reporting-guideline grid, all citing each other's real page numbers:
+Checkitoff's `checklist(...)` and palimpsest's `letter(...)` are both just descriptions of a document to build, in the same sense as `checklist(...)` was introduced in #link(<sec-pilot>)[Wiring a real project] --- listing both under the same `documents:` produces, from one compile, a manuscript, its tracked-changes companion, a reviewer response letter, and a completed reporting-guideline grid, all citing each other's real page numbers:
 
 #code(
   "#show: contexture.bundle.with(\n" +
   "  documents: (\n" +
   "    palimpsest.letter(exchanges: my-exchanges),\n" +
-  "    equator.checklist(checklist: checklists.consort),\n" +
+  "    checkitoff.checklist(checklist: checklists.consort),\n" +
   "  ),\n" +
   ")\n\n" +
   "#include \"manuscript.typ\""
