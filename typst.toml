@@ -9,4 +9,4 @@ keywords = ["consort", "strobe", "reporting guideline", "checklist", "manuscript
 compiler = "0.15.0"
 categories = ["office", "utility"]
 repository = "https://github.com/eusebe/typst-checkitoff"
-exclude = ["tests", "CLAUDE.md", "checklists/*.pdf", "checklists/*.docx", "*.pdf", "**/*.pdf", "**/*.png", ".gitignore", ".DS_Store"]
+exclude = ["tests", "CLAUDE.md", "readme-assets", "checklists/*.pdf", "checklists/*.docx", "*.pdf", "**/*.pdf", "**/*.png", ".gitignore", ".DS_Store"]

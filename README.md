@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="readme-assets/logo.svg" width="110" alt="checkitoff logo">
+</p>
+
 # Checkitoff
 
 **Checkitoff** fills in a reporting-guideline checklist — CONSORT, PRISMA, SPIRIT, STARD, STROBE — automatically. Mark where each item is answered in your manuscript; one compile produces the clean manuscript plus a completed grid citing the *real* page each item landed on.
