@@ -8,9 +8,9 @@
 
 <table align="center">
 <tr>
-<td align="center"><img src="docs/manual-snippets/bundle-basics/manuscript-plain.png" width="420" alt="A manuscript with items marked via check()"></td>
+<td align="center"><img src="readme-assets/manuscript.png" width="380" alt="A manuscript with items marked via check()"></td>
 <td align="center">→</td>
-<td align="center"><img src="docs/manual-snippets/bundle-basics/checklist-plain.png" width="200" alt="The generated checklist grid, citing the real page numbers"></td>
+<td align="center"><img src="readme-assets/checklist.png" width="260" alt="The generated checklist grid, citing the real page numbers"></td>
 </tr>
 </table>
 
