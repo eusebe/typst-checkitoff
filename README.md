@@ -6,11 +6,13 @@
 
 **Checkitoff** fills in a reporting-guideline checklist — CONSORT, PRISMA, SPIRIT, STARD, STROBE — automatically. Mark where each item is answered in your manuscript; one compile produces the clean manuscript plus a completed grid citing the *real* page each item landed on.
 
-<p align="center">
-  <img src="docs/manual-snippets/bundle-basics/manuscript-plain.png" width="480" alt="A manuscript with items marked via check()">
-  &nbsp;&nbsp;→&nbsp;&nbsp;
-  <img src="docs/manual-snippets/bundle-basics/checklist-plain.png" width="240" alt="The generated checklist grid, citing the real page numbers">
-</p>
+<table align="center">
+<tr>
+<td align="center"><img src="docs/manual-snippets/bundle-basics/manuscript-plain.png" width="420" alt="A manuscript with items marked via check()"></td>
+<td align="center">→</td>
+<td align="center"><img src="docs/manual-snippets/bundle-basics/checklist-plain.png" width="200" alt="The generated checklist grid, citing the real page numbers"></td>
+</tr>
+</table>
 
 ## The problem
 
