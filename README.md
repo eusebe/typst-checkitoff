@@ -90,7 +90,7 @@ Every entry is transcribed from its official source document, including its cita
 
 ## Documentation
 
-- [`docs/manual.typ`](docs/manual.typ) (⇒ [pdf](docs/manual.pdf)) — the full user manual, progressive from a first checklist through diagnostics, styling, wiring a real project, and combining checkitoff with `@preview/palimpsest` in the same compile — every result shown is a real compiled screenshot, not a simulation.
+- [The checkitoff guide](https://eusebe.github.io/typst-contexture-site/checkitoff/) — the full user guide, progressive from a first checklist through diagnostics, styling, wiring a real project, and combining checkitoff with `@preview/palimpsest` in the same compile — every result shown is a real compiled screenshot, not a simulation.
 
 ## Part of the `contexture` ecosystem
 

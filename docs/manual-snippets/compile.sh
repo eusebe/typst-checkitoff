@@ -1,10 +1,18 @@
 #!/bin/bash
-# Regenerates every pre-rendered PNG the manual embeds, then recompiles
-# the manual file(s) that use them --- the two-pipeline approach: real
-# example .typ files under docs/manual-snippets/ are compiled for real
-# (plain and preview, genuinely separate compiles), and the manual
-# itself (docs/manual*.typ) just does read()/image() on the results, no
-# package import, no eval().
+# Regenerates every pre-rendered PNG the checkitoff site's own pages
+# embed (../../../typst-contexture-site/checkitoff/*/index.typ, via
+# m.snippet(...)/m.screenshot(...)), plus the README's own teaser pair
+# --- the two-pipeline approach: real example .typ files under
+# docs/manual-snippets/ are compiled for real (plain and preview,
+# genuinely separate compiles), and the site pages/README that
+# reference them just do read()/image() on the results, no package
+# import, no eval(). (There used to be a docs/manual.typ that
+# assembled the same images into one PDF -- retired once the site
+# became the sole documentation entry point; see
+# ../../../SITE-VS-MANUALS-GAPS.md. The three README screenshots in
+# docs/manual-snippets/bundle-basics/ are hand-cropped after this
+# script runs -- see the commit that introduced them -- so re-crop
+# them by hand too if bundle-basics.typ's output changes.)
 #
 # Snippet convention, so this script can stay generic instead of
 # special-casing each file:
@@ -91,11 +99,4 @@ for src in docs/manual-snippets/*.typ; do
     echo "  $name -> $outdir/"
 done
 
-echo "Snippets regenerated. Compiling manual(s)..."
-for manual in docs/manual*.typ; do
-    [ -f "$manual" ] || continue
-    typst compile --root .. "$manual"
-    echo "  $manual"
-done
-
-echo "Done."
+echo "Snippets regenerated."
