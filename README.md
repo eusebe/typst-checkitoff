@@ -94,10 +94,10 @@ Every entry is transcribed from its official source document, including its cita
 
 ## Part of the `contexture` ecosystem
 
-Built on [`@preview/contexture`](../typst-contexture), the small shared engine behind every multi-document compile in this ecosystem. Combines cleanly with:
+Built on [`@preview/contexture`](https://eusebe.github.io/typst-contexture-site/contexture/), the small shared engine behind every multi-document compile in this ecosystem. Combines cleanly with:
 
-- [`@preview/palimpsest`](../typst-palimpsest) — manuscript revisions and a reviewer response letter that cites the real pages.
-- [`@preview/colophon`](../typst-colophon) — a companion audit of the composed manuscript (word counts, reading time, a figure/table inventory) — no `check()`/`na()` needed.
+- [`@preview/palimpsest`](https://eusebe.github.io/typst-contexture-site/palimpsest/) — manuscript revisions and a reviewer response letter that cites the real pages.
+- [`@preview/colophon`](https://eusebe.github.io/typst-contexture-site/colophon/) — a companion audit of the composed manuscript (word counts, reading time, a figure/table inventory) — no `check()`/`na()` needed.
 
 ## License
 
